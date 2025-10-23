@@ -85,7 +85,7 @@ namespace StudentPortfolioSystem.Controllers
                     _context.Update(student);
                     await _context.SaveChangesAsync();
 
-                    TempData["SuccessMessage"] = "✅ Student updated successfully!";
+                    TempData["SuccessMessage"] = " Student updated successfully!";
                     return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateConcurrencyException)
@@ -111,21 +111,24 @@ namespace StudentPortfolioSystem.Controllers
 
             return View(student);
         }
-
-        // Delete
-        public async Task<IActionResult> Delete(int id)
+        [HttpGet]
+        public async Task<IActionResult> Delete(int? id)
         {
+            if (id == null)
+                return NotFound();
+
             var student = await _context.Students
                 .Include(s => s.Department)
                 .FirstOrDefaultAsync(s => s.Id == id);
 
-            if (student == null) return NotFound();
+            if (student == null)
+                return NotFound();
 
             return View(student);
         }
-
-        //DeleteConfirmed
-        [HttpPost, ActionName("DeleteConfirmed")]
+        [HttpPost]
+        // POST: Students/Delete/5
+        [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
@@ -135,8 +138,9 @@ namespace StudentPortfolioSystem.Controllers
                 _context.Students.Remove(student);
                 await _context.SaveChangesAsync();
 
-                TempData["SuccessMessage"] = " Student deleted successfully!";
+                TempData["SuccessMessage"] = "Student deleted successfully!";
             }
+
             return RedirectToAction(nameof(Index));
         }
 
@@ -169,18 +173,30 @@ namespace StudentPortfolioSystem.Controllers
         // Dropdown list
         private void LoadDropdowns()
         {
-            ViewBag.Departments = new SelectList(new List<Department>
-            {
-                new Department
-                {
+            var departments = _context.Departments.ToList();
 
-                    Id=1,
-                    DepartmentName="Test"
-                }
+            ViewBag.Departments = departments != null && departments.Count > 0
+                ? new SelectList(departments, "Id", "DepartmentName")
+                : new SelectList(Enumerable.Empty<SelectListItem>());
 
-            }, "Id", "DepartmentName");
-            ViewBag.Majors = new List<string> { "CSE", "EEE", "BBA", "Civil", "Textile" };
+            ViewBag.Majors = new List<string> {  "Artificial Intelligence","Software Engineering", "Computer Networking",
+                "Accounting and Information Systems", "Computer Hardware Engineering","Textile Engineering" };
             ViewBag.Years = Enumerable.Range(2000, 50).ToList();
         }
+        //private void LoadDropdowns()
+        //{
+        //    ViewBag.Departments = new SelectList(new List<Department>
+        //    {
+        //        new Department
+        //        {
+
+        //            Id=1,
+        //            DepartmentName="Test"
+        //        }
+
+        //    }, "Id", "DepartmentName");
+        //    ViewBag.Majors = new List<string> { "CSE", "EEE", "BBA", "Civil", "Textile" };
+        //    ViewBag.Years = Enumerable.Range(2000, 50).ToList();
+        //}
     }
 }
